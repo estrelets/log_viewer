@@ -18,8 +18,8 @@ import {GroupEntry, LogEntry} from "./Api";
 function GroupModal(data: { group: GroupEntry }) {
     const [opened, setOpened] = useState(false);
 
-    const mapBullet = (type: number) => type == 0 
-        ? <ThemeIcon color={'red'} radius={'xl'}><IconBug/></ThemeIcon>    
+    const mapBullet = (type: number) => type == 0
+        ? <ThemeIcon color={'red'} radius={'xl'}><IconBug/></ThemeIcon>
         : <ThemeIcon radius={'xl'}><IconInfoCircle/></ThemeIcon>;
 
     const mapTitleColor  = (log: LogEntry): MantineColor => {
@@ -27,18 +27,18 @@ function GroupModal(data: { group: GroupEntry }) {
         if(log.duration < 150) return 'yellow'
         return 'red';
     };
-    
+
     const mapTitle = (log: LogEntry) => (
         <Group>
             <Text> {log.time.substring(14)}</Text>
             <Badge color={mapTitleColor(log)}>
-                {log.duration}
+                {log.duration} ms.
             </Badge>
         </Group>
     );
-    
+
     const items = data.group.logs.map(log => (
-        <TimelineItem 
+        <TimelineItem
             title={mapTitle(log)}
             bullet={mapBullet(log.type)}
             bulletSize={24}
@@ -50,13 +50,13 @@ function GroupModal(data: { group: GroupEntry }) {
             </Container>
         </TimelineItem>
     ))
-    
-    
-    
+
+
+
     return (
         <>
             <Modal
-                size={'100%'}  withCloseButton={false}  
+                size={'100%'}  withCloseButton={false}
                 opened={opened}
                 onClose={() => setOpened(false)}
             >

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
+public record GetGroupResultDto(int Total, GroupDto[] Groups);
 public record GroupDto(int Line, DateTime Start, DateTime End, string Message, LogDto[] Logs, int Duration, MessageType Type);
 public record LogDto(int Line, DateTime Time, MessageType Type, string? RequestId, string MessagePreview, int Duration);
 
@@ -43,7 +44,7 @@ public class LocatorController : ControllerBase
 
     [HttpGet("groups")]
     [ProducesResponseType(200, Type = typeof(LogEntry[]))]
-    public GroupDto[] GetGroupsInPeriod([FromQuery] DateTime from,
+    public GetGroupResultDto GetGroupsInPeriod([FromQuery] DateTime from,
         [FromQuery] DateTime? to = null,
         [FromQuery] int? take = 100,
         [FromQuery] int? skip = null,
@@ -60,6 +61,8 @@ public class LocatorController : ControllerBase
                 );
         }
 
+        var total = q.Count();
+
         if (skip != null)
         {
             q = q.Skip(skip.Value);
@@ -70,9 +73,10 @@ public class LocatorController : ControllerBase
             q = q.Take(take.Value);
         }
 
-        return q
+        var groups =  q
             .Select(Map)
             .ToArray();
+        return new GetGroupResultDto(total, groups);
     }
 
     [HttpGet("groups/count")]

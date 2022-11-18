@@ -1,4 +1,4 @@
-import {ActionIcon, Badge, Center, Group, MantineColor, Table, Text} from "@mantine/core";
+import {ActionIcon, Badge, Center, Code, Group, MantineColor, Table, Text} from "@mantine/core";
 import React, {useState} from "react";
 import {GroupEntry, LogEntry} from "./Api";
 import {IconChevronDown, IconChevronUp} from "@tabler/icons";
@@ -21,11 +21,11 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
             <tr key={l.line} style={{backgroundColor: mapColor(l.type)}}>
                 <td colSpan={2} style={{paddingLeft: '30px'}}> &gt;&gt; {l.time}</td>
                 <td colSpan={2}>
-                    {l.messagePreview.substring(0, 150)}
+                    <Code>{l.messagePreview.substring(0, 150)}</Code>
                 </td>
             </tr>
         );
-    
+
     const toggleChilds = (group: GroupEntry) => (<>
         {(group.logs.length > 1 && !group.expand) &&
             <ActionIcon onClick={_ => expand(group)}>
@@ -44,7 +44,7 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
         if(duration < 600) return 'yellow'
         return 'red';
     };
-    
+
     const mapGroup = (group: GroupEntry) => (
             <>
                 <tr key={group.line} style={{backgroundColor: mapColor(group.type)}}>
@@ -64,7 +64,9 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
                             <GroupModal group={group}/>
                         </Group>
                     </td>
-                    <td>{group.message}</td>
+                    <td>
+                        <Code>{group.message}</Code>
+                    </td>
                 </tr>
                 {group.expand &&
                     <>
@@ -83,7 +85,7 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
             </>);
 
     const rows = args.groups.map(x => mapGroup(x));
-    
+
     return (
         <Table striped>
             <colgroup>
@@ -91,7 +93,7 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
                 <col span={1} style={{width: '110px'}}/>
                 <col span={1}/>
             </colgroup>
-            
+
             <thead>
                 <tr>
                     <td>Start</td>
@@ -99,12 +101,12 @@ function GroupsTable(args:{groups:GroupEntry[], setGroups:(groups:GroupEntry[]) 
                     <td>Message</td>
                 </tr>
             </thead>
-            
+
             <tbody>
                 {rows}
             </tbody>
         </Table>
     )
-} 
+}
 
 export default GroupsTable;

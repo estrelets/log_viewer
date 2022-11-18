@@ -9,7 +9,7 @@ public enum MessageType { Err, Inf, Wrn }
 
 public class Reader
 {
-    private static readonly Regex MessageRegex = new("\\[(?<DATE>.+) (?<TYPE>\\w+) (?<REQUEST_ID>.+)?\\]\\s+(?<MESSAGE>.+)");
+    private static readonly Regex MessageRegex = new("\\[(?<DATE>.+?) (?<TYPE>\\w+?) (?<REQUEST_ID>.+?)?\\]\\s+(?<MESSAGE>.+)");
 
     private static readonly string DateGroupName = "DATE";
     private static readonly string TypeGroupName = "TYPE";
@@ -20,41 +20,66 @@ public class Reader
     public async Task<List<LogEntry>> Read(Stream stream, CancellationToken ct)
     {
         using var sr = new StreamReader(stream, leaveOpen: true);
-
         var result = new List<LogEntry>();
-        
-        int lineNumber = 0;
 
         LogEntry? last = null;
         var message = new StringBuilder();
-        
+        var lineNumber = 0;
+
         while (!sr.EndOfStream)
         {
-            var line = await sr.ReadLineAsync()!;
+            var line = await sr.ReadLineAsync();
+            lineNumber++;
 
-            var entry = Parse(line, lineNumber++);
+            var entry = Parse(line, lineNumber);
 
-            if (entry == null)
+            var isText = entry == null;
+            var isFirst = last == null;
+            var isFinished = sr.EndOfStream;
+
+            switch (isFirst, isText)
             {
-                message.AppendLine(line);
-            }
-            else
-            {
-                if (last == null)
-                {
-                    last = entry;
-                    message = new StringBuilder(last.MessagePreview);
+                case (true, true):
                     continue;
-                }
-                
-                last = last with { MessagePreview = message.ToString() };
-                result.Add(last);
-                last = entry;
-                message = new StringBuilder(last.MessagePreview + Environment.NewLine);
+                case (true, false):
+                    StartNew(entry!);
+                    AppendMessage(entry!.MessagePreview);
+                    break;
+                case (false, true):
+                    AppendMessage(line);
+                    break;
+                case (false, false):
+                    FinishLast();
+                    StartNew(entry!);
+                    AppendMessage(entry!.MessagePreview);
+                    break;
+            }
+
+            if (isFinished)
+            {
+                FinishLast();
             }
         }
 
+
         return result;
+
+        void StartNew(LogEntry entry)
+        {
+            last = entry;
+            message.Clear();
+        }
+
+        void FinishLast()
+        {
+            last = last with { MessagePreview = message.ToString() };
+            result.Add(last);
+        }
+
+        void AppendMessage(string line)
+        {
+            message.AppendLine(line);
+        }
     }
 
     private LogEntry? Parse(string line, int lineNumber)
@@ -79,7 +104,7 @@ public class Reader
         {
             requestId = Guid.NewGuid().ToString();
         }
-        
+
         return new LogEntry(lineNumber, time, type, requestId, messagePreview);
     }
 }
